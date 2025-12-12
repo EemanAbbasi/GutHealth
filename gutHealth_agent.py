@@ -3,22 +3,18 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
-# Try to load from Streamlit secrets first (for deployment)
+# Smart API key loading: Streamlit Cloud secrets first, then local .env
 try:
     import streamlit as st
-    if hasattr(st, 'secrets') and "OPENAI_API_KEY" in st.secrets:
-        api_key = st.secrets["OPENAI_API_KEY"]
-    else:
-        # Fallback to .env for local development
-        load_dotenv()
-        api_key = os.getenv('OPENAI_API_KEY')
-except ImportError:
-    # If streamlit not installed/imported, use .env (local)
+    # If running on Streamlit Cloud, use secrets
+    api_key = st.secrets.get("OPENAI_API_KEY")
+except Exception:
+    # Local development: use .env
     load_dotenv()
-    api_key = os.getenv('OPENAI_API_KEY')
+    api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
-    raise ValueError("OPENAI_API_KEY not found! Check Streamlit secrets (deployed) or .env (local).")
+    raise ValueError("OPENAI_API_KEY not found! For local: add to .env file. For Streamlit Cloud: add in App Settings > Secrets.")
 
 client = OpenAI(api_key=api_key)
 
